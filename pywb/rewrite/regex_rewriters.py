@@ -280,27 +280,29 @@ class JSWombatProxyRewriter(RegexRewriter):
         self.rewriter = rewriter
         self.extra_rules = extra_rules
 
-        self.first_buff = self.rules_factory.first_buff
-        self.last_buff = self.rules_factory.last_buff
+        self.set_as_module(False)
+
         self.local_objs = self.rules_factory.local_objs
 
         self._is_module_check = None
 
-    def set_as_module(self):
-        self.first_buff = "\nimport {{ {0} }} from '/static/__wb_module_decl.js';\n".format(
-             ", ".join(obj for obj in self.local_objs)
-        )
-        self.last_buff = ""
-        self._is_module_check = True
+    def set_as_module(self, is_module):
+        if is_module:
+            self.first_buff = "\nimport {{ {0} }} from '/static/__wb_module_decl.js';\n".format(
+                 ", ".join(obj for obj in self.local_objs)
+            )
+            self.last_buff = ""
+        else:
+            self.first_buff = self.rules_factory.first_buff
+            self.last_buff = self.rules_factory.last_buff
+
+        self._is_module_check = is_module
 
     def __call__(self, rwinfo):
         if self._is_module_check == None:
             buf = rwinfo.read_and_keep(BUFF_SIZE * 4)
 
-            if self.is_module(buf):
-                self.set_as_module()
-            else:
-                self._is_module_check = False
+            self.set_as_module(self.is_module(buf))
 
         return super(JSWombatProxyRewriter, self).__call__(rwinfo)
 
@@ -326,8 +328,7 @@ class JSWombatProxyRewriter(RegexRewriter):
 
     def rewrite_complete(self, string, **kwargs):
         if not kwargs.get('inline_attr'):
-            if kwargs.get('is_module'):
-                self.set_as_module()
+            self.set_as_module(kwargs.get('is_module'))
 
             return super(JSWombatProxyRewriter, self).rewrite_complete(string)
 

@@ -489,7 +489,9 @@ class HTMLRewriterMixin(StreamingRewriter):
                 result = self._allow_js_type(tag_attrs)
                 if result:
                     self._wb_parse_context = 'script'
-                self._wb_parse_module = (result == 'script-module')
+                    self._wb_parse_module = (result == 'script-module')
+                else:
+                    self._wb_parse_module = False
 
 
     def _allow_js_type(self, tag_attrs):
@@ -623,6 +625,7 @@ class HTMLRewriter(HTMLRewriterMixin, HTMLParser):
             end_tag = '</' + self._wb_parse_context + '>'
             self.feed(end_tag)
             self._wb_parse_context = None
+            self._wb_parse_module = False
 
         # if haven't insert head_insert, but wrote some content
         # out, then insert head_insert now
@@ -655,6 +658,7 @@ class HTMLRewriter(HTMLRewriterMixin, HTMLParser):
     def handle_endtag(self, tag):
         if (tag == self._wb_parse_context):
             self._wb_parse_context = None
+            self._wb_parse_module = False
 
         if tag == 'head' and not self.has_base:
             self._write_default_base()
