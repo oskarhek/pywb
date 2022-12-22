@@ -142,8 +142,7 @@ class BaseContentRewriter(object):
 
     def create_rewriter(self, text_type, rule, rwinfo, cdx, head_insert_func=None):
         rw_type, rw_class = self.get_rw_class(rule, text_type, rwinfo)
-
-        if rw_type in ('js', 'js-proxy'):
+        if rw_type in ('js', 'js-proxy', 'esm'):
             extra_rules = []
             if self.has_custom_rules(rule, cdx):
                 extra_rules = rule['js_regex_func'](rwinfo.url_rewriter)
@@ -469,10 +468,13 @@ class RewriteInfo(object):
         if mod in WORKER_MODS:
             return 'js-worker'
 
+        if mod == 'esm_':
+            return 'esm'
+
         if text_type == 'css' and mod == 'js_':
             text_type = 'css'
 
-        is_js_or_css = mod in ('js_', 'cs_')
+        is_js_or_css = mod in ('js_', 'cs_', 'esm_')
 
         # if html or no-content type, allow resolving on js, css,
         # or other templates
@@ -502,6 +504,8 @@ class RewriteInfo(object):
             return text_type
         elif mod == 'js_':
             return 'js'
+        elif mod == 'esm_':
+            return 'esm'
         else:
             return 'css'
 

@@ -274,17 +274,16 @@ class JSWombatProxyRewriter(RegexRewriter):
 
     rules_factory = JSWombatProxyRules()
 
-    def __init__(self, rewriter, extra_rules=None):
+    def __init__(self, rewriter, extra_rules=None, is_module=False):
         super(JSWombatProxyRewriter, self).__init__(rewriter, extra_rules=extra_rules)
 
         self.rewriter = rewriter
         self.extra_rules = extra_rules
 
-        self.set_as_module(False)
-
         self.local_objs = self.rules_factory.local_objs
-
         self._is_module_check = None
+
+        self.set_as_module(is_module)
 
     def set_as_module(self, is_module):
         if is_module:
@@ -350,6 +349,12 @@ class JSWombatProxyRewriter(RegexRewriter):
 
     def final_read(self):
         return self.last_buff
+
+
+# =================================================================
+class ESMRewriter(JSWombatProxyRewriter):
+    def __init__(self, rewriter, extra_rules=None, is_module=True):
+        super(ESMRewriter, self).__init__(rewriter, extra_rules, is_module=True)
 
 
 # =================================================================
